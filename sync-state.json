@@ -1,0 +1,11 @@
+{
+  "lastSync": "2025-06-16T13:00:00.148Z",
+  "jiraToGlpiMap": {},
+  "lastJiraSync": "2025-06-16T13:06:52.848Z",
+  "lastGlpiSync": "2025-06-16T13:15:08.783Z",
+  "glpiToJiraMap": {
+    "52": "DL-2533",
+    "59": "DL-2534",
+    "60": "DL-2535"
+  }
+}
