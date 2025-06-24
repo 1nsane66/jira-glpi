@@ -8,8 +8,8 @@ const config = {
     baseUrl: 'https://jira-stud.udv.group',
     // Используйте базовую авторизацию вместо куки (рекомендуется)
     auth: {
-      username: 'azacharov',
-      password: 'P@ssw0rd321'
+      username: '<<empty>>', // Введите вместо <<empty>> Ваш username!
+      password: '<<empty>>' // Введите вместо <<empty>> Ваш пароль!
     },
     batchSize: 100,
     fieldsToSync: ['summary', 'status', 'assignee', 'creator', 'created', 'updated', 'comment'],
