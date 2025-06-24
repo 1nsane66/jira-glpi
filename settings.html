@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Настройки синхронизации Jira-GLPI</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .tab { overflow: hidden; border: 1px solid #ccc; background-color: #f1f1f1; }
+        .tab button { background-color: inherit; float: left; border: none; outline: none; cursor: pointer; padding: 10px 16px; transition: 0.3s; }
+        .tab button:hover { background-color: #ddd; }
+        .tab button.active { background-color: #4CAF50; color: white; }
+        .tabcontent { display: none; padding: 20px; border: 1px solid #ccc; border-top: none; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"], select { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { background-color: #4CAF50; color: white; padding: 10px 15px; border: none; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+    </style>
+</head>
+<body>
+    <h1>Настройки синхронизации Jira-GLPI</h1>
+    
+    <div class="tab">
+        <button class="tablinks active" onclick="openTab(event, 'jira')">Jira</button>
+        <button class="tablinks" onclick="openTab(event, 'glpi')">GLPI</button>
+        <button class="tablinks" onclick="openTab(event, 'sync')">Синхронизация</button>
+    </div>
+    
+    <div id="jira" class="tabcontent" style="display: block;">
+        <h2>Настройки Jira</h2>
+        <div class="form-group">
+            <label for="jiraUrl">Jira URL:</label>
+            <input type="text" id="jiraUrl" placeholder="https://your-jira-instance.com">
+        </div>
+        <div class="form-group">
+            <label for="jiraUser">Имя пользователя:</label>
+            <input type="text" id="jiraUser" placeholder="username">
+        </div>
+        <div class="form-group">
+            <label for="jiraPass">Пароль/API токен:</label>
+            <input type="password" id="jiraPass" placeholder="password">
+        </div>
+        <div class="form-group">
+            <label for="jiraProject">Ключ проекта:</label>
+            <input type="text" id="jiraProject" placeholder="PROJ">
+        </div>
+        <div class="form-group">
+            <label for="jiraIssueType">Тип задачи:</label>
+            <input type="text" id="jiraIssueType" placeholder="Task">
+        </div>
+    </div>
+    
+    <div id="glpi" class="tabcontent">
+        <h2>Настройки GLPI</h2>
+        <div class="form-group">
+            <label for="glpiUrl">GLPI URL:</label>
+            <input type="text" id="glpiUrl" placeholder="http://your-glpi-instance/apirest.php">
+        </div>
+        <div class="form-group">
+            <label for="glpiAppToken">App Token:</label>
+            <input type="password" id="glpiAppToken" placeholder="app_token">
+        </div>
+        <div class="form-group">
+            <label for="glpiUserToken">User Token:</label>
+            <input type="password" id="glpiUserToken" placeholder="user_token">
+        </div>
+        <div class="form-group">
+            <label for="glpiCategory">Категория тикета:</label>
+            <input type="text" id="glpiCategory" placeholder="1">
+        </div>
+    </div>
+    
+    <div id="sync" class="tabcontent">
+        <h2>Настройки синхронизации</h2>
+        <div class="form-group">
+            <label for="syncDirection">Направление синхронизации:</label>
+            <select id="syncDirection">
+                <option value="both">Двусторонняя</option>
+                <option value="jira-to-glpi">Только Jira → GLPI</option>
+                <option value="glpi-to-jira">Только GLPI → Jira</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="syncInterval">Интервал синхронизации (cron):</label>
+            <input type="text" id="syncInterval" placeholder="*/30 * * * *">
+        </div>
+        <div class="form-group">
+            <label for="debugMode">Режим отладки:</label>
+            <input type="checkbox" id="debugMode">
+        </div>
+    </div>
+    
+    <button id="saveBtn">Сохранить настройки</button>
+    <div id="status" style="margin-top: 15px;"></div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        
+        // Загрузка настроек при запуске
+        ipcRenderer.send('load-settings');
+        ipcRenderer.on('settings-loaded', (event, settings) => {
+            if (settings.jira) {
+                document.getElementById('jiraUrl').value = settings.jira.baseUrl || '';
+                document.getElementById('jiraUser').value = settings.jira.auth?.username || '';
+                document.getElementById('jiraPass').value = settings.jira.auth?.password || '';
+                document.getElementById('jiraProject').value = settings.jira.defaultProjectKey || '';
+                document.getElementById('jiraIssueType').value = settings.jira.defaultIssueType || '';
+            }
+            
+            if (settings.glpi) {
+                document.getElementById('glpiUrl').value = settings.glpi.baseUrl || '';
+                document.getElementById('glpiAppToken').value = settings.glpi.appToken || '';
+                document.getElementById('glpiUserToken').value = settings.glpi.userToken || '';
+                document.getElementById('glpiCategory').value = settings.glpi.defaultTicketCategory || '';
+            }
+            
+            if (settings.sync) {
+                document.getElementById('syncDirection').value = settings.sync.direction || 'both';
+                document.getElementById('syncInterval').value = settings.sync.interval || '*/30 * * * *';
+                document.getElementById('debugMode').checked = settings.sync.debug || false;
+            }
+        });
+        
+        // Сохранение настроек
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            const settings = {
+                jira: {
+                    baseUrl: document.getElementById('jiraUrl').value,
+                    auth: {
+                        username: document.getElementById('jiraUser').value,
+                        password: document.getElementById('jiraPass').value
+                    },
+                    defaultProjectKey: document.getElementById('jiraProject').value,
+                    defaultIssueType: document.getElementById('jiraIssueType').value
+                },
+                glpi: {
+                    baseUrl: document.getElementById('glpiUrl').value,
+                    appToken: document.getElementById('glpiAppToken').value,
+                    userToken: document.getElementById('glpiUserToken').value,
+                    defaultTicketCategory: document.getElementById('glpiCategory').value
+                },
+                sync: {
+                    direction: document.getElementById('syncDirection').value,
+                    interval: document.getElementById('syncInterval').value,
+                    debug: document.getElementById('debugMode').checked
+                }
+            };
+            
+            ipcRenderer.send('save-settings', settings);
+        });
+        
+        ipcRenderer.on('settings-saved', (event, success) => {
+            const status = document.getElementById('status');
+            if (success) {
+                status.innerHTML = '<span style="color: green;">Настройки успешно сохранены!</span>';
+            } else {
+                status.innerHTML = '<span style="color: red;">Ошибка при сохранении настроек!</span>';
+            }
+            setTimeout(() => status.innerHTML = '', 3000);
+        });
+        
+        // Управление вкладками
+        function openTab(evt, tabName) {
+            const tabcontent = document.getElementsByClassName("tabcontent");
+            for (let i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            
+            const tablinks = document.getElementsByClassName("tablinks");
+            for (let i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+    </script>
+</body>
+</html>

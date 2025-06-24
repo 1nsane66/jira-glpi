@@ -1,0 +1,20 @@
+{
+  "jira": {
+    "baseUrl": "https://jira-stud.udv.group",
+    "auth": {
+      "username": "azacharov",
+      "password": "P@ssw0rd321"
+    },
+    "defaultProjectKey": "DL",
+    "defaultIssueType": "Task"
+  },
+  "glpi": {
+    "baseUrl": "http://10.51.4.2/glpi/apirest.php",
+    "appToken": "x9K5pICuWiC0yOIyO0XiHslo4k2qZHy4D8ndgeXE",
+    "userToken": "UWqcbVIi8Iebwayt2RuUy5DfUASgIIL8dZHKTK7R"
+  },
+  "sync": {
+    "direction": "both",
+    "interval": "*/30 * * * *"
+  }
+}

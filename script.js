@@ -1,38 +1,50 @@
+const config = require('./config.json');
+let config = {};
+
+try {
+    if (fs.existsSync(configPath)) {
+        config = JSON.parse(fs.readFileSync(configPath));
+    } else {
+        console.error('Конфигурационный файл не найден! Запустите settings_gui.js для настройки.');
+        process.exit(1);
+    }
+} catch (error) {
+    console.error('Ошибка загрузки конфигурации:', error);
+    process.exit(1);
+}
 const axios = require('axios');
 const cron = require('node-cron');
 const fs = require('fs');
 
 // Общая конфигурация
-const config = {
-  jira: {
-    baseUrl: 'https://jira-stud.udv.group',
-    // Используйте базовую авторизацию вместо куки (рекомендуется)
-    auth: {
-      username: '<<empty>>', // Введите вместо <<empty>> Ваш username!
-      password: '<<empty>>' // Введите вместо <<empty>> Ваш пароль!
+const fullConfig = {
+    jira: {
+        baseUrl: config.jira?.baseUrl || 'https://jira-stud.udv.group',
+        auth: {
+            username: config.jira?.auth?.username || '',
+            password: config.jira?.auth?.password || ''
+        },
+        batchSize: 100,
+        fieldsToSync: ['summary', 'status', 'assignee', 'creator', 'created', 'updated', 'comment'],
+        defaultProjectKey: config.jira?.defaultProjectKey || 'DL',
+        defaultIssueType: config.jira?.defaultIssueType || 'Task'
     },
-    batchSize: 100,
-    fieldsToSync: ['summary', 'status', 'assignee', 'creator', 'created', 'updated', 'comment'],
-    // Убедитесь, что эти значения корректны для вашего Jira!
-    defaultProjectKey: 'DL',  // Замените на реальный ключ проекта
-    defaultIssueType: 'Task'     // Замените на реальный тип задачи
-  },
-  glpi: {
-    baseUrl: 'http://10.51.4.2/glpi/apirest.php',
-    appToken: 'x9K5pICuWiC0yOIyO0XiHslo4k2qZHy4D8ndgeXE',
-    userToken: 'UWqcbVIi8Iebwayt2RuUy5DfUASgIIL8dZHKTK7R',
-    defaultTicketCategory: 1,
-    ticketStatusMap: {
-      'Новый': '1',
-      'В работе': '2',
-      'Решен': '3',
-      'Закрыт': '5'
-    }
-  },
-  syncStateFile: 'sync-state.json',
-  syncInterval: '*/30 * * * *', // Каждые 30 минут
-  debug: true,
-  syncDirection: 'both' // 'jira-to-glpi', 'glpi-to-jira', 'both'
+    glpi: {
+        baseUrl: config.glpi?.baseUrl || 'http://10.51.4.2/glpi/apirest.php',
+        appToken: config.glpi?.appToken || 'x9K5pICuWiC0yOIyO0XiHslo4k2qZHy4D8ndgeXE',
+        userToken: config.glpi?.userToken || 'UWqcbVIi8Iebwayt2RuUy5DfUASgIIL8dZHKTK7R',
+        defaultTicketCategory: config.glpi?.defaultTicketCategory || 1,
+        ticketStatusMap: {
+            'Новый': '1',
+            'В работе': '2',
+            'Решен': '3',
+            'Закрыт': '5'
+        }
+    },
+    syncStateFile: 'sync-state.json',
+    syncInterval: config.sync?.interval || '*/30 * * * *',
+    debug: config.sync?.debug || true,
+    syncDirection: config.sync?.direction || 'both'
 };
 
 // Логирование
